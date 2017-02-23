@@ -54,7 +54,7 @@
 #endif
 #define CUTIL_MATH_H  //make sure that the buggy cutil_math.h will not be included
 
-#include "cuda_runtime.h"
+#include <cuda_runtime.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 typedef unsigned int uint;
@@ -654,13 +654,13 @@ inline __device__ __host__ int3 clamp(int3 v, int3 a, int3 b)
 ////////////////////////////////////////////////////////////////////////////////
 
 // additional constructors
-inline __host__ __device__ uint3 make_uint3(uint s)
+inline __host__ __device__ uint3 make_uint3(unsigned int s)
 {
     return make_uint3(s, s, s);
 }
 inline __host__ __device__ uint3 make_uint3(float3 a)
 {
-    return make_uint3(uint(a.x), uint(a.y), uint(a.z));
+    return make_uint3(unsigned int(a.x), unsigned int(a.y), unsigned int(a.z));
 }
 
 // min
@@ -701,15 +701,15 @@ inline __host__ __device__ uint3 operator*(uint3 a, uint3 b)
 {
     return make_uint3(a.x * b.x, a.y * b.y, a.z * b.z);
 }
-inline __host__ __device__ uint3 operator*(uint3 a, uint s)
+inline __host__ __device__ uint3 operator*(uint3 a, unsigned int s)
 {
     return make_uint3(a.x * s, a.y * s, a.z * s);
 }
-inline __host__ __device__ uint3 operator*(uint s, uint3 a)
+inline __host__ __device__ uint3 operator*(unsigned int s, uint3 a)
 {
     return make_uint3(a.x * s, a.y * s, a.z * s);
 }
-inline __host__ __device__ void operator*=(uint3 &a, uint s)
+inline __host__ __device__ void operator*=(uint3 &a, unsigned int s)
 {
     a.x *= s; a.y *= s; a.z *= s;
 }
@@ -719,26 +719,26 @@ inline __host__ __device__ uint3 operator/(uint3 a, uint3 b)
 {
     return make_uint3(a.x / b.x, a.y / b.y, a.z / b.z);
 }
-inline __host__ __device__ uint3 operator/(uint3 a, uint s)
+inline __host__ __device__ uint3 operator/(uint3 a, unsigned int s)
 {
     return make_uint3(a.x / s, a.y / s, a.z / s);
 }
-inline __host__ __device__ uint3 operator/(uint s, uint3 a)
+inline __host__ __device__ uint3 operator/(unsigned int s, uint3 a)
 {
     return make_uint3(a.x / s, a.y / s, a.z / s);
 }
-inline __host__ __device__ void operator/=(uint3 &a, uint s)
+inline __host__ __device__ void operator/=(uint3 &a, unsigned int s)
 {
     a.x /= s; a.y /= s; a.z /= s;
 }
 
 // clamp
-inline __device__ __host__ uint clamp(uint f, uint a, uint b)
+inline __device__ __host__ unsigned int clamp(unsigned int f, unsigned int a, unsigned int b)
 {
     return max(a, min(f, b));
 }
 
-inline __device__ __host__ uint3 clamp(uint3 v, uint a, uint b)
+inline __device__ __host__ uint3 clamp(uint3 v, unsigned int a, unsigned int b)
 {
     return make_uint3(clamp(v.x, a, b), clamp(v.y, a, b), clamp(v.z, a, b));
 }

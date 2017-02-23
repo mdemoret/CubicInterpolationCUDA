@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="internal">
+      <UniqueIdentifier>{fb48ef8c-2316-4a4d-b882-e07206dd4fcc}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="internal\bspline_kernel.cu">
+      <Filter>internal</Filter>
+    </CudaCompile>
+    <CudaCompile Include="castFloat4.cu" />
+    <CudaCompile Include="cubicPrefilter2D.cu" />
+    <CudaCompile Include="cubicPrefilter3D.cu" />
+    <CudaCompile Include="cubicTex1D.cu" />
+    <CudaCompile Include="cubicTex2D.cu" />
+    <CudaCompile Include="cubicTex3D.cu" />
+    <CudaCompile Include="memcpy.cu" />
+    <CudaCompile Include="internal\cubicPrefilter_kernel.cu">
+      <Filter>internal</Filter>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="internal\cutil_math_bugfixes.h">
+      <Filter>internal</Filter>
+    </ClInclude>
+    <ClInclude Include="BiCubicBSpline.hpp" />
+    <ClInclude Include="cutil.h" />
+    <ClInclude Include="exception.h" />
+    <ClInclude Include="helper_timer.h" />
+    <ClInclude Include="castFloat4.cuh" />
+    <ClInclude Include="memcpy.cuh" />
+    <ClInclude Include="cubicPrefilter.cuh" />
+    <ClInclude Include="cubicTex.cuh" />
+    <ClInclude Include="Prefix.h" />
+    <ClInclude Include="internal\math_func.cuh">
+      <Filter>internal</Filter>
+    </ClInclude>
+    <ClInclude Include="internal\version.cuh">
+      <Filter>internal</Filter>
+    </ClInclude>
+    <ClInclude Include="internal\cubicPrefilter_kernel.cuh">
+      <Filter>internal</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="BiCubicBSpline.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="internal\cubicTex2D_kernel.inl">
+      <Filter>internal</Filter>
+    </None>
+    <None Include="internal\cubicTex3D_kernel.inl">
+      <Filter>internal</Filter>
+    </None>
+    <None Include="internal\cubicTex1D_kernel.inl">
+      <Filter>internal</Filter>
+    </None>
+  </ItemGroup>
+</Project>

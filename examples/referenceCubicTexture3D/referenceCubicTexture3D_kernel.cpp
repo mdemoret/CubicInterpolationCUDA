@@ -49,10 +49,11 @@ following papers:
 #include <xutility>
 #include <internal/cutil_math_bugfixes.h>
 #include <cutil.h>
+#include <algorithm>
 
-#include <cubicPrefilter3D.hpp>
-#include <cubicFilter3D_kernel.hpp>
-#include <cubicFilter3D_kernel_sse.hpp>
+#include "cubicPrefilter3D.hpp"
+#include "cubicFilter3D_kernel.hpp"
+#include "cubicFilter3D_kernel_sse.hpp"
 
 //texture<uchar, 3, cudaReadModeNormalizedFloat> tex;  //3D texture
 //texture<float, 3, cudaReadModeElementType> coeffs;  //3D texture
