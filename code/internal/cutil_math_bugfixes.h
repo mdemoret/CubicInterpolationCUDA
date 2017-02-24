@@ -54,7 +54,7 @@
 #endif
 #define CUTIL_MATH_H  //make sure that the buggy cutil_math.h will not be included
 
-#include <cuda_runtime.h>
+#include "cuda_runtime.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 typedef unsigned int uint;

@@ -43,10 +43,10 @@ static inline void CUT_SAFE_CALL(CUTBoolean result)
 static inline void CUT_CHECK_ERROR(const char* errorMessage)
 {
    cudaError_t err = cudaGetLastError();
-    if (cudaSuccess != err)
+   if (cudaSuccess != err)
    {
-        fprintf(stderr, "Cuda error: %s: %s.\n", errorMessage, cudaGetErrorString(err) );
-    }
+      fprintf(stderr, "Cuda error: %s: %s.\n", errorMessage, cudaGetErrorString(err));
+   }
 }
 
 static std::vector<StopWatchInterface*> __timers;

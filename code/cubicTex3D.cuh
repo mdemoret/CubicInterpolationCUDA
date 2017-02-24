@@ -1,23 +1,22 @@
 #include "cubicTex.cuh"
 
 #include "internal/bspline_kernel.cu"
+#include <texture_fetch_functions.h>
 
 //! Trilinearly interpolated texture lookup, using unnormalized coordinates.
 //! This function merely serves as a reference for the tricubic versions.
 //! @param tex  3D texture
 //! @param coord  unnormalized 3D texture coordinate
-template<typename T, enum cudaTextureReadMode mode>
-__device__ float linearTex3D(texture<T, _TEXTYPE3D, mode> tex, float3 coord)
+__device__ float linearTex3D(cudaTextureObject_t tex, float3 coord)
 {
-   return tex3D(tex, coord.x, coord.y, coord.z);
+   return tex3D<float>(tex, coord.x, coord.y, coord.z);
 }
 
 //! Tricubic interpolated texture lookup, using unnormalized coordinates.
 //! Straight forward implementation, using 64 nearest neighbour lookups.
 //! @param tex  3D texture
 //! @param coord  unnormalized 3D texture coordinate
-template<typename T, enum cudaTextureReadMode mode>
-__device__ float cubicTex3DSimple(texture<T, _TEXTYPE3D, mode> tex, float3 coord)
+__device__ float cubicTex3DSimple(cudaTextureObject_t tex, float3 coord)
 {
    // transform the coordinate from [0,extent] to [-0.5, extent-0.5]
    const float3 coord_grid = coord - 0.5f;
@@ -38,7 +37,7 @@ __device__ float cubicTex3DSimple(texture<T, _TEXTYPE3D, mode> tex, float3 coord
          {
             float bsplineXYZ = bspline(x-fraction.x) * bsplineYZ;
             float u = index.x + x;
-            result += bsplineXYZ * tex3D(tex, u, v, w);
+            result += bsplineXYZ * tex3D<float>(tex, u, v, w);
          }
       }
    }

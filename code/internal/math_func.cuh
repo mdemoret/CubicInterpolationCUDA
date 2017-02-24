@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cuda_runtime.h>
+#include "cuda_runtime.h"
 #include "version.cuh"
 
 typedef unsigned int uint;
@@ -21,12 +21,12 @@ inline __device__ __host__ unsigned int PowTwoDivider(unsigned int n)
    return divider;
 }
 
-inline __host__ __device__ float2 operator-(float a, float2 b)
-{
-   return make_float2(a - b.x, a - b.y);
-}
-
-inline __host__ __device__ float3 operator-(float a, float3 b)
-{
-   return make_float3(a - b.x, a - b.y, a - b.z);
-}
+//inline __host__ __device__ float2 operator-(float a, float2 b)
+//{
+//   return make_float2(a - b.x, a - b.y);
+//}
+//
+//inline __host__ __device__ float3 operator-(float a, float3 b)
+//{
+//   return make_float3(a - b.x, a - b.y, a - b.z);
+//}

@@ -6,19 +6,11 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="internal\bspline_kernel.cu">
-      <Filter>internal</Filter>
-    </CudaCompile>
     <CudaCompile Include="castFloat4.cu" />
     <CudaCompile Include="cubicPrefilter2D.cu" />
     <CudaCompile Include="cubicPrefilter3D.cu" />
-    <CudaCompile Include="cubicTex1D.cu" />
-    <CudaCompile Include="cubicTex2D.cu" />
-    <CudaCompile Include="cubicTex3D.cu" />
     <CudaCompile Include="memcpy.cu" />
-    <CudaCompile Include="internal\cubicPrefilter_kernel.cu">
-      <Filter>internal</Filter>
-    </CudaCompile>
+    <CudaCompile Include="cubicInterpolate.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="internal\cutil_math_bugfixes.h">
@@ -39,9 +31,16 @@
     <ClInclude Include="internal\version.cuh">
       <Filter>internal</Filter>
     </ClInclude>
+    <ClInclude Include="cubicInterpolate.cuh" />
+    <ClInclude Include="internal\bspline_kernel.cuh">
+      <Filter>internal</Filter>
+    </ClInclude>
     <ClInclude Include="internal\cubicPrefilter_kernel.cuh">
       <Filter>internal</Filter>
     </ClInclude>
+    <ClInclude Include="cubicTex1D.cuh" />
+    <ClInclude Include="cubicTex2D.cuh" />
+    <ClInclude Include="cubicTex3D.cuh" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BiCubicBSpline.cpp" />

@@ -2,7 +2,7 @@
 
 #include "memcpy.cuh"
 
-#include <cuda_runtime.h>
+#include "cuda_runtime.h"
 
 
 //--------------------------------------------------------------------------

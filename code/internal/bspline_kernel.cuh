@@ -41,17 +41,16 @@ following papers:
    Journal of Graphics Tools, vol. 13, no. 4, pp. 61-69, 2008.
 \*--------------------------------------------------------------------------*/
 
-#ifndef _CUDA_BSPLINE_H_
-#define _CUDA_BSPLINE_H_
+#pragma once
 
-#include "cutil_math_bugfixes.h"
-#include "math_func.cuh"
+#include "math_functions.hpp"
+//#include "math_func.cuh"
 
 // Cubic B-spline function
 // The 3rd order Maximal Order and Minimum Support function, that it is maximally differentiable.
 inline __host__ __device__ float bspline(float t)
 {
-   t = fabs(t);
+   t = abs(t);
    const float a = 2.0f - t;
 
    if (t < 1.0f) return 2.0f/3.0f - 0.5f*t*t*a;
@@ -72,7 +71,7 @@ inline __host__ __device__ float bspline_1st_derivative(float t)
 // The second order derivative of the cubic B-spline
 inline __host__ __device__ float bspline_2nd_derivative(float t)
 {
-   t = fabs(t);
+   t = abs(t);
 
    if (t < 1.0f) return 3.0f*t - 2.0f;
    else if (t < 2.0f) return 2.0f - t;
@@ -114,5 +113,3 @@ __device__ void bspline_weights_2nd_derivative(T fraction, T& w0, T& w1, T& w2, 
    w2 = -3.0f * fraction + 1.0f;
    w3 =  fraction;
 }
-
-#endif // _CUDA_BSPLINE_H_

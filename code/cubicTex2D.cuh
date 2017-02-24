@@ -1,16 +1,17 @@
 #include "cubicTex.cuh"
 
-#include "internal/bspline_kernel.cu"
+#include "internal/bspline_kernel.cuh"
+#include <texture_fetch_functions.h>
+#include "helper_math.h"
 
 //! Bilinearly interpolated texture lookup, using unnormalized coordinates.
 //! This function merely serves as a reference for the bicubic versions.
 //! @param tex  2D texture
 //! @param x  unnormalized x texture coordinate
 //! @param y  unnormalized y texture coordinate
-template<typename T, enum cudaTextureReadMode mode>
-__device__ float linearTex2D(texture<T, 2, mode> tex, float x, float y)
+__device__ float linearTex2D(cudaTextureObject_t tex, float x, float y)
 {
-   return tex2D(tex, x, y);
+   return tex2D<float>(tex, x, y);
 }
 
 //! Bicubic interpolated texture lookup, using unnormalized coordinates.
@@ -18,8 +19,7 @@ __device__ float linearTex2D(texture<T, 2, mode> tex, float x, float y)
 //! @param tex  2D texture
 //! @param x  unnormalized x texture coordinate
 //! @param y  unnormalized y texture coordinate
-template<typename T, enum cudaTextureReadMode mode>
-__device__ float cubicTex2DSimple(texture<T, 2, mode> tex, float x, float y)
+__device__ float cubicTex2DSimple(cudaTextureObject_t tex, float x, float y)
 {
    // transform the coordinate from [0,extent] to [-0.5, extent-0.5]
    const float2 coord_grid = make_float2(x - 0.5f, y - 0.5f);
@@ -37,7 +37,7 @@ __device__ float cubicTex2DSimple(texture<T, 2, mode> tex, float x, float y)
       {
          float bsplineXY = bspline(x-fraction.x) * bsplineY;
          float u = index.x + x;
-         result += bsplineXY * tex2D(tex, u, v);
+         result += bsplineXY * tex2D<float>(tex, u, v);
       }
    }
    return result;
@@ -92,11 +92,9 @@ __device__ void bspline_weights_1st_derivative_y(float2 fraction, float2& w0, fl
 #undef _EXTRA_ARGS
 #undef _PASS_EXTRA_ARGS
 #undef _TEX2D
-#undef _TEXTYPE2D
 #define _EXTRA_ARGS , int layer
 #define _PASS_EXTRA_ARGS , layer
 #define _TEX2D tex2DLayered
-#define _TEXTYPE2D cudaTextureType2DLayered
 
 #define WEIGHTS bspline_weights
 #define CUBICTEX2D cubicTex2DLayered
@@ -120,4 +118,3 @@ __device__ void bspline_weights_1st_derivative_y(float2 fraction, float2& w0, fl
 #undef _EXTRA_ARGS
 #undef _PASS_EXTRA_ARGS
 #undef _TEX2D
-#undef _TEXTYPE2D

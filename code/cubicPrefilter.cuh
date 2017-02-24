@@ -8,7 +8,7 @@
 //! @param width   image width in number of pixels
 //! @param height  image height in number of pixels
 template<typename floatN>
-void CUBIC_API CubicBSplinePrefilter2D(floatN* image, unsigned int pitch, unsigned int width, unsigned int height);
+cudaPitchedPtr CUBIC_API CubicBSplinePrefilter2D(floatN* image, unsigned int pitch, unsigned int width, unsigned int height);
 
 //! Convert the pixel values into cubic b-spline coefficients
 //! @param image  pointer to the image bitmap in GPU (device) memory

@@ -22,3 +22,5 @@ bin/win32/Debug/referenceCubicTexture3D.pdb
 vc120.pdb
 *.user
 *.suo
+code/vc140.pdb
+/code/_Output

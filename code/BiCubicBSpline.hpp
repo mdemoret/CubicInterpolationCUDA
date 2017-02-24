@@ -9,6 +9,7 @@
 
 #include "Prefix.h"
 #include <memory>
+#include <vector>
 
 typedef unsigned long long cudaTextureObject_t;
 
@@ -20,7 +21,7 @@ public:
 
    void LoadInputData(const float * data, unsigned int width, unsigned int height);
 
-   float Interpolate(float x, float y) const;
+   std::vector<float> Interpolate(const std::vector<float> & xCoords, const std::vector<float> & yCoords) const;
 
 private:
    unsigned int m_Width;

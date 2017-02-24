@@ -41,7 +41,8 @@ following papers:
    Journal of Graphics Tools, vol. 13, no. 4, pp. 61-69, 2008.
 \*--------------------------------------------------------------------------*/
 
-//#include "cutil_math_bugfixes.h"
+#include <texture_fetch_functions.h>
+#include "bspline_kernel.cu"
 
 #ifndef _EXTRA_ARGS
 #define _EXTRA_ARGS
@@ -50,15 +51,18 @@ following papers:
 
 #ifndef _TEX3D
 #define _TEX3D tex3D
-#define _TEXTYPE3D 3
+#endif
+
+#ifndef WEIGHTS
+#define WEIGHTS bspline_weights
 #endif
 
 //! Tricubic interpolated texture lookup, using unnormalized coordinates.
 //! Fast implementation, using 8 trilinear lookups.
 //! @param tex  3D texture
 //! @param coord  unnormalized 3D texture coordinate
-template<typename floatN, class T, enum cudaTextureReadMode mode>
-__device__ floatN CUBICTEX3D(texture<T, _TEXTYPE3D, mode> tex, float3 coord)
+template<typename floatN>
+__device__ floatN CUBICTEX3D(cudaTextureObject_t tex, float3 coord)
 {
    // shift the coordinate from [0,extent] to [-0.5, extent-0.5]
    const float3 coord_grid = coord - 0.5f;
@@ -74,18 +78,18 @@ __device__ floatN CUBICTEX3D(texture<T, _TEXTYPE3D, mode> tex, float3 coord)
 
    // fetch the eight linear interpolations
    // weighting and fetching is interleaved for performance and stability reasons
-   floatN tex000 = tex3D(tex, h0.x, h0.y, h0.z);
-   floatN tex100 = tex3D(tex, h1.x, h0.y, h0.z);
+   floatN tex000 = tex3D<floatN>(tex, h0.x, h0.y, h0.z);
+   floatN tex100 = tex3D<floatN>(tex, h1.x, h0.y, h0.z);
    tex000 = g0.x * tex000 + g1.x * tex100;  //weigh along the x-direction
-   floatN tex010 = tex3D(tex, h0.x, h1.y, h0.z);
-   floatN tex110 = tex3D(tex, h1.x, h1.y, h0.z);
+   floatN tex010 = tex3D<floatN>(tex, h0.x, h1.y, h0.z);
+   floatN tex110 = tex3D<floatN>(tex, h1.x, h1.y, h0.z);
    tex010 = g0.x * tex010 + g1.x * tex110;  //weigh along the x-direction
    tex000 = g0.y * tex000 + g1.y * tex010;  //weigh along the y-direction
-   floatN tex001 = tex3D(tex, h0.x, h0.y, h1.z);
-   floatN tex101 = tex3D(tex, h1.x, h0.y, h1.z);
+   floatN tex001 = tex3D<floatN>(tex, h0.x, h0.y, h1.z);
+   floatN tex101 = tex3D<floatN>(tex, h1.x, h0.y, h1.z);
    tex001 = g0.x * tex001 + g1.x * tex101;  //weigh along the x-direction
-   floatN tex011 = tex3D(tex, h0.x, h1.y, h1.z);
-   floatN tex111 = tex3D(tex, h1.x, h1.y, h1.z);
+   floatN tex011 = tex3D<floatN>(tex, h0.x, h1.y, h1.z);
+   floatN tex111 = tex3D<floatN>(tex, h1.x, h1.y, h1.z);
    tex011 = g0.x * tex011 + g1.x * tex111;  //weigh along the x-direction
    tex001 = g0.y * tex001 + g1.y * tex011;  //weigh along the y-direction
 
@@ -99,70 +103,6 @@ __device__ floatN CUBICTEX3D(texture<T, _TEXTYPE3D, mode> tex, float3 coord)
 // allow the cubicTex3D function to be called without any template arguments,
 // thus with any <> brackets.
 
-// 1-dimensional voxels
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX3D(texture<float, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float, float, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX3D(texture<unsigned char, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float, unsigned char, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX3D(texture<char, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float, char, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX3D(texture<unsigned short, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float, unsigned short, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX3D(texture<short, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float, short, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX3D(texture<unsigned int, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float, unsigned int, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX3D(texture<int, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float, int, mode>(tex, coord);}
-// 2-dimensional voxels
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX3D(texture<float2, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float2, float2, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX3D(texture<uchar2, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float2, uchar2, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX3D(texture<char2, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float2, char2, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX3D(texture<ushort2, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float2, ushort2, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX3D(texture<short2, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float2, short2, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX3D(texture<uint2, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float2, uint2, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX3D(texture<int2, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float2, int2, mode>(tex, coord);}
-// _TEXTYPE3D-dimensional voxels
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX3D(texture<float3, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float3, float3, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX3D(texture<uchar3, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float3, uchar3, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX3D(texture<char3, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float3, char3, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX3D(texture<ushort3, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float3, ushort3, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX3D(texture<short3, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float3, short3, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX3D(texture<uint3, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float3, uint3, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX3D(texture<int3, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float3, int3, mode>(tex, coord);}
-// 4-dimensional voxels
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX3D(texture<float4, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float4, float4, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX3D(texture<uchar4, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float4, uchar4, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX3D(texture<char4, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float4, char4, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX3D(texture<ushort4, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float4, ushort4, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX3D(texture<short4, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float4, short4, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX3D(texture<uint4, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float4, uint4, mode>(tex, coord);}
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX3D(texture<int4, _TEXTYPE3D, mode> tex, float3 coord) {return CUBICTEX3D<float4, int4, mode>(tex, coord);}
-
-// Function definitions with (float x, float y, float z) instead of (float3 coord)
-// 1-dimensional voxels
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX3D(texture<float, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float, float, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX3D(texture<unsigned char, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float, unsigned char, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX3D(texture<char, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float, char, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX3D(texture<unsigned short, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float, unsigned short, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX3D(texture<short, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float, short, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX3D(texture<unsigned int, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float, unsigned int, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX3D(texture<int, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float, int, mode>(tex, make_float3(x,y,z));}
-// 2-dimensional voxels
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX3D(texture<float2, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float2, float2, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX3D(texture<uchar2, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float2, uchar2, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX3D(texture<char2, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float2, char2, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX3D(texture<ushort2, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float2, ushort2, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX3D(texture<short2, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float2, short2, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX3D(texture<uint2, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float2, uint2, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX3D(texture<int2, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float2, int2, mode>(tex, make_float3(x,y,z));}
-// _TEXTYPE3D-dimensional voxels
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX3D(texture<float3, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float3, float3, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX3D(texture<uchar3, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float3, uchar3, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX3D(texture<char3, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float3, char3, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX3D(texture<ushort3, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float3, ushort3, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX3D(texture<short3, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float3, short3, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX3D(texture<uint3, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float3, uint3, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX3D(texture<int3, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float3, int3, mode>(tex, make_float3(x,y,z));}
-// 4-dimensional voxels
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX3D(texture<float4, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float4, float4, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX3D(texture<uchar4, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float4, uchar4, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX3D(texture<char4, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float4, char4, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX3D(texture<ushort4, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float4, ushort4, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX3D(texture<short4, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float4, short4, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX3D(texture<uint4, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float4, uint4, mode>(tex, make_float3(x,y,z));}
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX3D(texture<int4, _TEXTYPE3D, mode> tex, float x, float y, float z) {return CUBICTEX3D<float4, int4, mode>(tex, make_float3(x,y,z));}
-
+template __device__ float CUBICTEX3D<float>(cudaTextureObject_t tex, float3 coord);
+template __device__ float2 CUBICTEX3D<float2>(cudaTextureObject_t tex, float3 coord);
+template __device__ float4 CUBICTEX3D<float4>(cudaTextureObject_t tex, float3 coord);

@@ -41,7 +41,8 @@ following papers:
    Journal of Graphics Tools, vol. 13, no. 4, pp. 61-69, 2008.
 \*--------------------------------------------------------------------------*/
 
-//#include "cutil_math_bugfixes.h"
+#include <texture_fetch_functions.h>
+#include "bspline_kernel.cu"
 
 #ifndef _EXTRA_ARGS
 #define _EXTRA_ARGS
@@ -50,7 +51,10 @@ following papers:
 
 #ifndef _TEX1D
 #define _TEX1D tex1D
-#define _TEXTYPE1D 1
+#endif
+
+#ifndef WEIGHTS
+#define WEIGHTS bspline_weights
 #endif
 
 //! Bicubic interpolated texture lookup, using unnormalized coordinates.
@@ -58,8 +62,8 @@ following papers:
 //! @param tex  1D texture
 //! @param x  unnormalized x texture coordinate
 //! @param y  unnormalized y texture coordinate
-template<typename floatN, class T, enum cudaTextureReadMode mode>
-__device__ floatN CUBICTEX1D(texture<T, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS)
+template<typename floatN>
+__device__ floatN CUBICTEX1D(cudaTextureObject_t tex, float x _EXTRA_ARGS)
 {
    // transform the coordinate from [0,extent] to [-0.5, extent-0.5]
    const float coord_grid = x - 0.5f;
@@ -74,8 +78,8 @@ __device__ floatN CUBICTEX1D(texture<T, _TEXTYPE1D, mode> tex, float x _EXTRA_AR
    const float h1 = (w3 / g1) + 1.5f + index;  //h1 = w3/g1 + 1, move from [-0.5, extent-0.5] to [0, extent]
 
    // fetch the two linear interpolations
-   floatN tex0 = _TEX1D(tex, h0 _PASS_EXTRA_ARGS);
-   floatN tex1 = _TEX1D(tex, h1 _PASS_EXTRA_ARGS);
+   floatN tex0 = _TEX1D<floatN>(tex, h0 _PASS_EXTRA_ARGS);
+   floatN tex1 = _TEX1D<floatN>(tex, h1 _PASS_EXTRA_ARGS);
 
    // weigh along the x-direction
    return (g0 * tex0 + g1 * tex1);
@@ -88,35 +92,6 @@ __device__ floatN CUBICTEX1D(texture<T, _TEXTYPE1D, mode> tex, float x _EXTRA_AR
 // allow the cubicTex1D/cubicTex1DLayered function to be called without any
 // template arguments, thus without any <> brackets.
 
-// 1-dimensional pixels
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX1D(texture<float, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float, float, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX1D(texture<unsigned char, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float, unsigned char, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX1D(texture<char, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float, char, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX1D(texture<unsigned short, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float, unsigned short, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX1D(texture<short, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float, short, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX1D(texture<unsigned int, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float, unsigned int, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float CUBICTEX1D(texture<int, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float, int, mode>(tex, x _PASS_EXTRA_ARGS);}
-// 2-dimensional pixels
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX1D(texture<float2, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float2, float2, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX1D(texture<uchar2, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float2, uchar2, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX1D(texture<char2, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float2, char2, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX1D(texture<ushort2, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float2, ushort2, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX1D(texture<short2, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float2, short2, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX1D(texture<uint2, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float2, uint2, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float2 CUBICTEX1D(texture<int2, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float2, int2, mode>(tex, x _PASS_EXTRA_ARGS);}
-// 3-dimensional pixels
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX1D(texture<float3, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float3, float3, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX1D(texture<uchar3, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float3, uchar3, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX1D(texture<char3, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float3, char3, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX1D(texture<ushort3, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float3, ushort3, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX1D(texture<short3, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float3, short3, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX1D(texture<uint3, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float3, uint3, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float3 CUBICTEX1D(texture<int3, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float3, int3, mode>(tex, x _PASS_EXTRA_ARGS);}
-// 4-dimensional pixels
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX1D(texture<float4, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float4, float4, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX1D(texture<uchar4, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float4, uchar4, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX1D(texture<char4, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float4, char4, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX1D(texture<ushort4, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float4, ushort4, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX1D(texture<short4, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float4, short4, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX1D(texture<uint4, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float4, uint4, mode>(tex, x _PASS_EXTRA_ARGS);}
-template<enum cudaTextureReadMode mode> __device__ float4 CUBICTEX1D(texture<int4, _TEXTYPE1D, mode> tex, float x _EXTRA_ARGS) {return CUBICTEX1D<float4, int4, mode>(tex, x _PASS_EXTRA_ARGS);}
+template __device__ float CUBICTEX1D<float>(cudaTextureObject_t tex, float x _EXTRA_ARGS);
+template __device__ float2 CUBICTEX1D<float2>(cudaTextureObject_t tex, float x _EXTRA_ARGS);
+template __device__ float4 CUBICTEX1D<float4>(cudaTextureObject_t tex, float x _EXTRA_ARGS);
