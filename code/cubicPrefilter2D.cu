@@ -4,6 +4,7 @@
 #include "cutil.h"
 #include "internal/cubicPrefilter_kernel.cuh"
 #include "internal/math_func.cuh"
+#include "driver_types.h"
 
 // ***************************************************************************
 // *	Global GPU procedures
@@ -17,9 +18,9 @@ __global__ void SamplesToCoefficients2DX(
 {
    // process lines in x-direction
    const unsigned int y = blockIdx.x * blockDim.x + threadIdx.x;
-   floatN* line = (floatN*)((unsigned char*)image + y * pitch);  //direct access
+   floatN* line = image + y * pitch;  //direct access
 
-   ConvertToInterpolationCoefficients(line, width, sizeof(floatN));
+   ConvertToInterpolationCoefficients(line, width, 1);
 }
 
 template<typename floatN>
@@ -49,19 +50,25 @@ template<typename floatN>
 cudaPitchedPtr CubicBSplinePrefilter2D(floatN* image, unsigned int pitch, unsigned int width, unsigned int height)
 {
    cudaPitchedPtr imageData;
-   CUDA_SAFE_CALL(cudaMalloc3D(&imageData, make_cudaExtent(width, height, 1)));
+   CUDA_SAFE_CALL(cudaMalloc3D(&imageData, make_cudaExtent(width * sizeof(floatN), height, 1)));
 
    CUDA_SAFE_CALL(cudaMemcpy2D(imageData.ptr, imageData.pitch, image, sizeof(floatN) * width, sizeof(floatN) * width, height, cudaMemcpyHostToDevice));
 
+   float stride = imageData.pitch / sizeof(floatN);
+
+   //assert(fmod(stride, 1.0f) == 0.0f);
+
    dim3 dimBlockX(min(PowTwoDivider(height), 64));
    dim3 dimGridX(height / dimBlockX.x);
-   SamplesToCoefficients2DX<floatN><<<dimGridX, dimBlockX>>>(image, pitch, width, height);
+   SamplesToCoefficients2DX<floatN><<<dimGridX, dimBlockX>>>((float*)imageData.ptr, (unsigned int)stride, width, height);
    CUT_CHECK_ERROR("SamplesToCoefficients2DX kernel failed");
 
    dim3 dimBlockY(min(PowTwoDivider(width), 64));
    dim3 dimGridY(width / dimBlockY.x);
-   SamplesToCoefficients2DY<floatN><<<dimGridY, dimBlockY>>>(image, pitch, width, height);
+   SamplesToCoefficients2DY<floatN><<<dimGridY, dimBlockY>>>((float*)imageData.ptr, (unsigned int)stride, width, height);
    CUT_CHECK_ERROR("SamplesToCoefficients2DY kernel failed");
+
+   CUDA_SAFE_CALL(cudaMemcpy2D(image, sizeof(floatN) * width, imageData.ptr, imageData.pitch, sizeof(floatN) * width, height, cudaMemcpyDeviceToHost));
 
    return imageData;
 }

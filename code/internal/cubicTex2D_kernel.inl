@@ -43,6 +43,7 @@ following papers:
 
 #include <texture_fetch_functions.h>
 #include "bspline_kernel.cuh"
+#include "helper_math.h"
 
 #ifndef _EXTRA_ARGS
 #define _EXTRA_ARGS
@@ -67,7 +68,7 @@ __device__ floatN CUBICTEX2D(cudaTextureObject_t tex, float x, float y _EXTRA_AR
 {
    // transform the coordinate from [0,extent] to [-0.5, extent-0.5]
    const float2 coord_grid = make_float2(x - 0.5f, y - 0.5f);
-   const float2 index = floor(coord_grid);
+   const float2 index = floorf(coord_grid);
    const float2 fraction = coord_grid - index;
    float2 w0, w1, w2, w3;
    WEIGHTS(fraction, w0, w1, w2, w3);

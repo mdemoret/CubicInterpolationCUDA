@@ -15,7 +15,7 @@ BiCubicBSpline::~BiCubicBSpline()
 {
 }
 
-void BiCubicBSpline::LoadInputData(const float * data, unsigned int width, unsigned int height)
+void BiCubicBSpline::LoadInputData(float * data, unsigned int width, unsigned int height)
 {
    m_Width = width;
    m_Height = height;
@@ -36,11 +36,11 @@ void BiCubicBSpline::LoadInputData(const float * data, unsigned int width, unsig
 
    cudaTextureDesc texDesc;
    memset(&texDesc, 0, sizeof(texDesc));
-   texDesc.addressMode[0] = cudaAddressModeWrap;
+   texDesc.addressMode[0] = cudaAddressModeClamp;
    texDesc.addressMode[1] = cudaAddressModeClamp;
    texDesc.filterMode = cudaFilterModeLinear;
    texDesc.readMode = cudaReadModeElementType;
-   texDesc.normalizedCoords = 1;
+   texDesc.normalizedCoords = 0;
 
    CUDA_SAFE_CALL(cudaCreateTextureObject(&m_Tex, &resDesc, &texDesc, NULL));
 }

@@ -23,7 +23,7 @@ __device__ float cubicTex2DSimple(cudaTextureObject_t tex, float x, float y)
 {
    // transform the coordinate from [0,extent] to [-0.5, extent-0.5]
    const float2 coord_grid = make_float2(x - 0.5f, y - 0.5f);
-   float2 index = floor(coord_grid);
+   float2 index = floorf(coord_grid);
    const float2 fraction = coord_grid - index;
    index.x += 0.5f;  //move from [-0.5, extent-0.5] to [0, extent]
    index.y += 0.5f;  //move from [-0.5, extent-0.5] to [0, extent]

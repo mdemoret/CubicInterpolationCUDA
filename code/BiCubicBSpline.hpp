@@ -19,7 +19,7 @@ public:
    BiCubicBSpline();
    ~BiCubicBSpline();
 
-   void LoadInputData(const float * data, unsigned int width, unsigned int height);
+   void LoadInputData(float * data, unsigned int width, unsigned int height);
 
    std::vector<float> Interpolate(const std::vector<float> & xCoords, const std::vector<float> & yCoords) const;
 

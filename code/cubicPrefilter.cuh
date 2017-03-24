@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Prefix.h"
+#include "driver_types.h"
 
 //! Convert the pixel values into cubic b-spline coefficients
 //! @param image  pointer to the image bitmap in GPU (device) memory
